@@ -2,7 +2,6 @@ package funcutil
 
 import (
 	"fmt"
-	"log"
 	"testing"
 )
 
@@ -33,15 +32,15 @@ func (s service) Info() string {
 type monitor struct {
 }
 
-func (m *monitor) Display() {
-	log.Println("Display()")
+func (m *monitor) Display() string {
+	return "Display()"
 }
 
 func TestRegistration(t *testing.T) {
 	f := New()
 	f.Register(&service{}, &monitor{})
 	if len(f.dump()) != 6 {
-		t.Error("Registered methods should be 5")
+		t.Error("Registered methods should be 6")
 	}
 }
 
@@ -67,5 +66,22 @@ func TestMethodCalls(t *testing.T) {
 	// test non existing method
 	if _, err := f.Call("service.NotExists"); err == nil {
 		t.Error("method should not exists")
+	}
+}
+
+func TestNamespace(t *testing.T) {
+	expect := "com.example.device.monitor.Display() string"
+	f := New("com.example.device")
+	f.Register(&monitor{})
+	m := f.dump()[0]
+	if m != expect {
+		t.Errorf("Should be %s got %s", expect, m)
+	}
+	if rets, err := f.Call("com.example.device.monitor.Display"); err != nil {
+		t.Error(err)
+	} else {
+		if rets[0] != "Display()" {
+			t.Error("Should be Display()")
+		}
 	}
 }

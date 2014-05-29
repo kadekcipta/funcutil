@@ -69,6 +69,7 @@ func (mi *callInfo) parametersMatch(params ...interface{}) error {
 type FuncUtil struct {
 	sync.Mutex
 	calls map[string]callInfo
+	ns    string
 }
 
 func (f *FuncUtil) getReturnTypes(t reflect.Type) []reflect.Type {
@@ -133,7 +134,11 @@ func (f *FuncUtil) register(s interface{}) {
 			continue
 		}
 		// normalize the name regardless the receiver type
-		mn := fmt.Sprintf("%s.%s", et.Name(), m.Name)
+		namespace := ""
+		if f.ns != "" {
+			namespace = f.ns + "."
+		}
+		mn := fmt.Sprintf("%s%s.%s", namespace, et.Name(), m.Name)
 		funcType := m.Func.Type()
 		argTypes := f.getArgumentTypes(funcType)
 		retTypes := f.getReturnTypes(funcType)
@@ -212,6 +217,13 @@ func (f *FuncUtil) dump() []string {
 }
 
 // New creates and returns new FuncUtil value
-func New() *FuncUtil {
-	return &FuncUtil{calls: map[string]callInfo{}}
+func New(vars ...string) *FuncUtil {
+	ns := ""
+	if len(vars) > 0 {
+		ns = vars[0]
+	}
+	return &FuncUtil{
+		calls: map[string]callInfo{},
+		ns:    ns,
+	}
 }
