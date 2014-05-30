@@ -46,6 +46,10 @@ type callInfo struct {
 	signature string
 }
 
+var (
+	ErrMethodNotFound = errors.New("Method not found")
+)
+
 func (mi *callInfo) parametersMatch(params ...interface{}) error {
 	var paramTypes []reflect.Type
 	if len(mi.argTypes) > 1 {
@@ -171,7 +175,7 @@ func (f *FuncUtil) Call(methodName string, params ...interface{}) ([]interface{}
 
 	ci, exists := f.calls[methodName]
 	if !exists {
-		return nil, errors.New(fmt.Sprintf("Method %s not found", methodName))
+		return nil, ErrMethodNotFound
 	}
 	err := ci.parametersMatch(params...)
 	if err != nil {
@@ -208,7 +212,7 @@ func (f *FuncUtil) Call(methodName string, params ...interface{}) ([]interface{}
 	return nil, nil
 }
 
-func (f *FuncUtil) dump() []string {
+func (f *FuncUtil) Dump() []string {
 	services := []string{}
 	for _, v := range f.calls {
 		services = append(services, v.signature)

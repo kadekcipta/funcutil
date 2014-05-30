@@ -29,24 +29,24 @@ func (s service) Info() string {
 	return fmt.Sprintf("Running: %v", s.running)
 }
 
-type monitor struct {
+type Monitor struct {
 }
 
-func (m *monitor) Display() string {
+func (m *Monitor) Display() string {
 	return "Display()"
 }
 
 func TestRegistration(t *testing.T) {
 	f := New()
-	f.Register(&service{}, &monitor{})
-	if len(f.dump()) != 6 {
+	f.Register(&service{}, &Monitor{})
+	if len(f.Dump()) != 6 {
 		t.Error("Registered methods should be 6")
 	}
 }
 
 func TestMethodCalls(t *testing.T) {
 	f := New()
-	f.Register(&service{}, &monitor{})
+	f.Register(&service{}, &Monitor{})
 	// test value set
 	if _, err := f.Call("service.Run"); err != nil {
 		t.Error(err)
@@ -69,15 +69,25 @@ func TestMethodCalls(t *testing.T) {
 	}
 }
 
+func createMonitor() Monitor {
+	return Monitor{}
+}
+
+func delegateRegister(f *FuncUtil, vars ...interface{}) {
+	f.Register(vars...)
+}
+
 func TestNamespace(t *testing.T) {
-	expect := "com.example.device.monitor.Display() string"
+	expect := "com.example.device.Monitor.Display() string"
 	f := New("com.example.device")
-	f.Register(&monitor{})
-	m := f.dump()[0]
+	monitor := createMonitor()
+	//f.Register(&monitor)
+	delegateRegister(f, &monitor)
+	m := f.Dump()[0]
 	if m != expect {
 		t.Errorf("Should be %s got %s", expect, m)
 	}
-	if rets, err := f.Call("com.example.device.monitor.Display"); err != nil {
+	if rets, err := f.Call("com.example.device.Monitor.Display"); err != nil {
 		t.Error(err)
 	} else {
 		if rets[0] != "Display()" {
